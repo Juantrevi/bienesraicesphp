@@ -28,14 +28,19 @@ $errores = [];
 if($_SERVER["REQUEST_METHOD"] === "POST"){
 
 
-$titulo = mysqli_real_escape_string($bd, $_POST["titulo"]);
-$precio = mysqli_real_escape_string($bd, $_POST["precio"]);
-$descripcion = mysqli_real_escape_string($bd, $_POST["descripcion"]);
-$habitaciones = mysqli_real_escape_string($bd, $_POST["habitaciones"]);
-$wc = mysqli_real_escape_string($bd, $_POST["wc"]);
-$estacionamiento = mysqli_real_escape_string($bd, $_POST["estacionamiento"]);
-$vendedorId = mysqli_real_escape_string($bd, $_POST["vendedor"]);
+$titulo = mysqli_real_escape_string($db, $_POST["titulo"]);
+$precio = mysqli_real_escape_string($db, $_POST["precio"]);
+$descripcion = mysqli_real_escape_string($db, $_POST["descripcion"]);
+$habitaciones = mysqli_real_escape_string($db, $_POST["habitaciones"]);
+$wc = mysqli_real_escape_string($db, $_POST["wc"]);
+$estacionamiento = mysqli_real_escape_string($db, $_POST["estacionamiento"]);
+$vendedorId = mysqli_real_escape_string($db, $_POST["vendedor"]);
 $creado = date("y/m/d");
+
+//Asignar files a una variable
+$imagen = $_FILES["imagen"];
+
+
 
 if(!$titulo){
     $errores[] = "Debes añadir un titulo";
@@ -55,6 +60,15 @@ if(!$estacionamiento){
 if(!$vendedorId){
     $errores[] = "Debes añadir un vendedor";
 }
+if(!$imagen["name"] || $imagen["error"]){
+    $errores[] = "La imagen es obligatoria";
+}
+//Validar imagenes por tamaño
+
+/* $medida = 1000 * 100;
+if($imagen["size"]>$medida){
+    $errores[] = "La imagen es muy pesada";
+} */
 
 /* echo "<pre>";
 var_dump($errores);
@@ -63,14 +77,34 @@ echo "</pre>";
 
  //Revisamos que el arreglo este vacio
  if(empty($errores)){
-    $query = " INSERT INTO propiedades(titulo, precio, descripcion, habitaciones, wc, estacionamiento, creado, vendedorId) 
-    VALUES ('$titulo', '$precio', '$descripcion', '$habitaciones', '$wc', '$estacionamiento', '$creado', '$vendedorId') ";
+
+
+    /*SUBIDA DE ARCHIVOS*/
+
+    //Crear una carpeta y guardar en ruta relativa
+
+    $carpetaImagenes = "../../imagenes/";
+    if(!is_dir($carpetaImagenes)){
+        mkdir($carpetaImagenes);
+    }
+
+    //Generar un nombre unico de la imagen
+
+    $nombreImagen = md5(uniqid(rand (), true ) ) . ".jpg";
+
+    //Subir la imagen
+
+        move_uploaded_file($imagen["tmp_name"], $carpetaImagenes . $nombreImagen );
+
+
+    $query = " INSERT INTO propiedades(titulo, precio, imagen, descripcion, habitaciones, wc, estacionamiento, creado, vendedorId) 
+    VALUES ('$titulo', '$precio', '$nombreImagen', '$descripcion', '$habitaciones', '$wc', '$estacionamiento', '$creado', '$vendedorId') ";
     
     $resultado = mysqli_query($db, $query);
     
     if($resultado){
         //Redireccionar al usuario
-        header("location: /admin"); 
+        header("location: /admin?resultado=1"); 
     }
  }
 
@@ -99,7 +133,7 @@ require "../../includes/funciones.php";
 
 
 
-    <form class="formulario" method="POST" action="/admin/propiedades/crear.php">
+    <form class="formulario" method="POST" action="/admin/propiedades/crear.php" enctype="multipart/form-data">
         <fieldset>
             <legend>Informacion General</legend>
 
