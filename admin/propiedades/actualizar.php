@@ -1,5 +1,12 @@
 <?php 
+require "../../includes/funciones.php";
 
+$auth = estaAutenticado();
+
+
+if(!$auth){
+    header("location: /");
+}
 //Validar la URL por id valido
 $id = $_GET["id"];
 $id = filter_var($id, FILTER_VALIDATE_INT);
@@ -117,7 +124,7 @@ if(!$vendedorId){
 
 }
 
-require "../../includes/funciones.php";
+
     incluirTemplate("header");
     ?>
 <main class="contenedor seccion">
