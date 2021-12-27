@@ -26,13 +26,14 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
             $usuario = mysqli_fetch_assoc($resultado);
             //Verificar si el password es correcto o no
             $auth = password_verify($password, $usuario['password']);
-            
+
             if($auth){
                 //El usuario esta autenticado
                 session_start();
                 //Llenar el arreglo de la sesion
                 $_SESSION["usuario"] = $usuario["email"];
                 $_SESSION["login"] = true;
+                header("location: /admin");
             }else{
                 $errores[] = "El password es incorrecto";
             }
